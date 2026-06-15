@@ -3,64 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Helmet Viewer</title>
+    <title>Amazon-Spec 3D & AR Product Viewer</title>
     
-    <!-- Import the web component -->
+    <!-- Import Google's Model-Viewer Engine -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
 
     <style>
-        .model-container {
-            width: 100%;
-            max-width: 600px;
-            height: 500px;
-            margin: 0 auto;
-            border-radius: 12px;
-            overflow: hidden;
-            background-color: #121212; /* Sleek monochrome background */
+        :root {
+            --amazon-orange: #FF9900;
+            --premium-dark: #121212;
+            --border-glow: #232F3E;
         }
 
-        /* The component sits directly in the DOM, so it's easy to style */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .product-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .model-container {
+            width: 100%;
+            max-width: 650px;
+            height: 550px;
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1e1e1e 0%, #0f0f0f 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
         model-viewer {
             width: 100%;
             height: 100%;
+            display: block;
         }
 
-        /* Customizing the AR button for a high-end UI feel */
-        .custom-ar-button {
+        /* --- Amazon Styled Action Buttons --- */
+        .amazon-ar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             background-color: #ffffff;
-            color: #000000;
-            border-radius: 4px;
-            border: none;
-            padding: 10px 20px;
+            color: #111111;
+            border: 1px solid #cccccc;
+            border-radius: 100px;
+            padding: 12px 24px;
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .amazon-ar-btn:hover {
+            transform: translateY(-2px);
+            background-color: #f7f7f7;
+            border-color: var(--amazon-orange);
+            box-shadow: 0 6px 16px rgba(255, 153, 0, 0.2);
+        }
+
+        /* SVG Icon mimicking Amazon's AR layout badge */
+        .ar-icon {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* --- High-End Loading State Mechanism --- */
+        .amazon-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        model-viewer:not(.loading) .amazon-loading-overlay {
+            opacity: 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--amazon-orange);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .progress-bar {
+            width: 120px;
+            height: 2px;
+            background-color: rgba(255,255,255,0.1);
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        .progress-bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background-color: var(--amazon-orange);
+            transition: width 0.1s linear;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
 
-    <div class="model-container">
-        <model-viewer 
-            src="DamagedHelmet.gltf" 
-            alt="A 3D model of a damaged sci-fi helmet" 
-            ar 
-            ar-modes="webxr scene-viewer quick-look" 
-            camera-controls 
-            tone-mapping="neutral"
-            shadow-intensity="1">
+    <div class="product-wrapper">
+        <div class="model-container">
             
-            <!-- This button only appears on AR-compatible mobile devices -->
-            <button slot="ar-button" class="custom-ar-button">
-                View in Room
-            </button>
-            
-        </model-viewer>
+            <model-viewer 
+    class="loading"
+    src="DamagedHelmet.gltf" 
+    alt="Amazon Standardized 3D Product Asset" 
+
+    ar 
+    ar-modes="webxr scene-viewer quick-look" 
+    
+
+    ar-placement="floor" 
+
+    ar-scale="fixed"
+    
+
+    orientation="0deg 0deg 0deg" 
+
+    tone-mapping="commerce"
+    exposure="1.2"
+    shadow-intensity="1.8"
+    shadow-softness="0.6"
+
+    camera-controls 
+    enable-pan
+    auto-rotate
+    auto-rotate-delay="3000"
+    rotation-per-second="15deg"
+    interaction-prompt="auto"
+    interaction-prompt-style="wiggle">
+    
+    <!-- Custom Amazon Styled AR Trigger Button Slot -->
+    <button slot="ar-button" class="amazon-ar-btn">
+        <svg class="ar-icon" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+        View in Your Room
+    </button>
+
+    <!-- High-End Loading Screen Fallback Slot -->
+    <div slot="poster" class="amazon-loading-overlay">
+        <div class="spinner"></div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="buffer-bar"></div>
+        </div>
     </div>
+    
+</model-viewer>
+
+        </div>
+    </div>
+
+    <!-- Script to track loading percentages natively, matching premium UI systems -->
+    <script>
+        const modelViewer = document.querySelector('model-viewer');
+        const progressBarFill = document.getElementById('buffer-bar');
+
+        modelViewer.addEventListener('progress', (event) => {
+            const progress = event.detail.totalProgress * 100;
+            progressBarFill.style.width = `${progress}%`;
+            
+            if(progress >= 100) {
+                modelViewer.classList.remove('loading');
+            }
+        });
+    </script>
 
 </body>
 </html>

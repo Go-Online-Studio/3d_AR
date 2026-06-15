@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Helmet Viewer</title>
+    
+    <!-- Import the web component -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+
+    <style>
+        .model-container {
+            width: 100%;
+            max-width: 600px;
+            height: 500px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #121212; /* Sleek monochrome background */
+        }
+
+        /* The component sits directly in the DOM, so it's easy to style */
+        model-viewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Customizing the AR button for a high-end UI feel */
+        .custom-ar-button {
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 4px;
+            border: none;
+            padding: 10px 20px;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="model-container">
+        <model-viewer 
+            src="DamagedHelmet.gltf" 
+            alt="A 3D model of a damaged sci-fi helmet" 
+            ar 
+            ar-modes="webxr scene-viewer quick-look" 
+            camera-controls 
+            tone-mapping="neutral"
+            shadow-intensity="1">
+            
+            <!-- This button only appears on AR-compatible mobile devices -->
+            <button slot="ar-button" class="custom-ar-button">
+                View in Room
+            </button>
+            
+        </model-viewer>
+    </div>
+
+
+</body>
+</html>
