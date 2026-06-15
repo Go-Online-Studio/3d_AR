@@ -1,217 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazon-Spec 3D & AR Product Viewer</title>
-    
-    <!-- Import Google's Model-Viewer Engine -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon-Spec 3D & AR Product Viewer</title>
 
-    <style>
-        :root {
-            --amazon-orange: #FF9900;
-            --premium-dark: #121212;
-            --border-glow: #232F3E;
-        }
+  <script
+    type="module"
+    src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js">
+  </script>
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #0a0a0a;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-        .product-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-        .model-container {
-            width: 100%;
-            max-width: 650px;
-            height: 550px;
-            position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            background: radial-gradient(circle at center, #1e1e1e 0%, #0f0f0f 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
+    .product-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
 
-        model-viewer {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+    .model-container {
+      width: 100%;
+      max-width: 650px;
+      height: 550px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      background: radial-gradient(circle at 50% 35%, #1e1e1e 0%, #0f0f0f 72%);
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
 
-        /* --- Amazon Styled Action Buttons --- */
-        .amazon-ar-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background-color: #ffffff;
-            color: #111111;
-            border: 1px solid #cccccc;
-            border-radius: 100px;
-            padding: 12px 24px;
-            position: absolute;
-            bottom: 24px;
-            right: 24px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s ease-in-out;
-        }
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+      --poster-color: transparent;
+      --progress-bar-color: #ff9900;
+      --progress-bar-height: 0;
+    }
 
-        .amazon-ar-btn:hover {
-            transform: translateY(-2px);
-            background-color: #f7f7f7;
-            border-color: var(--amazon-orange);
-            box-shadow: 0 6px 16px rgba(255, 153, 0, 0.2);
-        }
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255, 153, 0, 0.08), transparent 32%),
+        #111;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 450ms ease, visibility 450ms ease;
+      visibility: hidden;
+    }
 
-        /* SVG Icon mimicking Amazon's AR layout badge */
-        .ar-icon {
-            width: 18px;
-            height: 18px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-        }
+    model-viewer.loading .loading-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
 
-        /* --- High-End Loading State Mechanism --- */
-        .amazon-loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #121212;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.5s ease-out;
-            pointer-events: none;
-            z-index: 10;
-        }
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.16);
+      border-top-color: #ff9900;
+      animation: spin 900ms linear infinite;
+    }
 
-        model-viewer:not(.loading) .amazon-loading-overlay {
-            opacity: 0;
-        }
+    .progress-track {
+      width: min(220px, 52%);
+      height: 4px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+    }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--amazon-orange);
-            animation: spin 1s ease-in-out infinite;
-        }
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ff9900, #ffb84d);
+      transition: width 180ms ease;
+    }
 
-        .progress-bar {
-            width: 120px;
-            height: 2px;
-            background-color: rgba(255,255,255,0.1);
-            margin-top: 15px;
-            position: relative;
-            overflow: hidden;
-            border-radius: 2px;
-        }
+    .ar-button {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 22px;
+      border: 2px solid rgba(255, 255, 255, 0.86);
+      border-radius: 100px;
+      background: #fff;
+      color: #111;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      transition:
+        transform 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+    }
 
-        .progress-bar-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 0%;
-            background-color: var(--amazon-orange);
-            transition: width 0.1s linear;
-        }
+    .ar-button:hover {
+      transform: translateY(-2px);
+      background: #f7f7f2;
+      border-color: #ff9900;
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.38),
+        0 0 18px rgba(255, 153, 0, 0.42);
+    }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    .ar-button:active {
+      transform: translateY(0);
+    }
+
+    .ar-button svg {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .model-container {
+        height: min(550px, 78vh);
+      }
+
+      .ar-button {
+        right: 16px;
+        bottom: 16px;
+        max-width: calc(100% - 32px);
+        min-height: 46px;
+        padding: 0 18px;
+        font-size: 12px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <main class="product-wrapper">
+    <section class="model-container" aria-label="3D and AR product viewer">
+      <model-viewer
+        id="productViewer"
+        class="loading"
+        src="DamagedHelmet.gltf"
+        alt="True-to-scale 3D product preview"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-scale="fixed"
+        ar-placement="floor"
+        orientation="0deg 0deg 0deg"
+        tone-mapping="commerce"
+        exposure="1.2"
+        shadow-intensity="1.8"
+        shadow-softness="0.6"
+        camera-controls
+        enable-pan
+        auto-rotate
+        auto-rotate-delay="3000"
+        rotation-per-second="15deg"
+        interaction-prompt-style="wiggle">
 
-    <div class="product-wrapper">
-        <div class="model-container">
-            
-            <model-viewer 
-    class="loading"
-    src="DamagedHelmet.gltf" 
-    alt="Amazon Standardized 3D Product Asset" 
-
-    ar 
-    ar-modes="webxr scene-viewer quick-look" 
-    
-
-    ar-placement="floor" 
-
-    ar-scale="fixed"
-    
-
-    orientation="0deg 0deg 0deg" 
-
-    tone-mapping="commerce"
-    exposure="1.2"
-    shadow-intensity="1.8"
-    shadow-softness="0.6"
-
-    camera-controls 
-    enable-pan
-    auto-rotate
-    auto-rotate-delay="3000"
-    rotation-per-second="15deg"
-    interaction-prompt="auto"
-    interaction-prompt-style="wiggle">
-    
-    <!-- Custom Amazon Styled AR Trigger Button Slot -->
-    <button slot="ar-button" class="amazon-ar-btn">
-        <svg class="ar-icon" viewBox="0 0 24 24">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-        </svg>
-        View in Your Room
-    </button>
-
-    <!-- High-End Loading Screen Fallback Slot -->
-    <div slot="poster" class="amazon-loading-overlay">
-        <div class="spinner"></div>
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="buffer-bar"></div>
+        <div slot="poster" class="loading-overlay">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
         </div>
-    </div>
-    
-</model-viewer>
 
-        </div>
-    </div>
+        <button slot="ar-button" class="ar-button" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
+            <path
+              d="M12 2.75 20 7.25v9.5l-8 4.5-8-4.5v-9.5l8-4.5Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round" />
+            <path
+              d="M4.5 7.5 12 12l7.5-4.5M12 12v8.5"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          <span>View in Your Room</span>
+        </button>
+      </model-viewer>
+    </section>
+  </main>
 
-    <!-- Script to track loading percentages natively, matching premium UI systems -->
-    <script>
-        const modelViewer = document.querySelector('model-viewer');
-        const progressBarFill = document.getElementById('buffer-bar');
+  <script>
+    const viewer = document.querySelector("#productViewer");
+    const progressFill = document.querySelector("#progressFill");
 
-        modelViewer.addEventListener('progress', (event) => {
-            const progress = event.detail.totalProgress * 100;
-            progressBarFill.style.width = `${progress}%`;
-            
-            if(progress >= 100) {
-                modelViewer.classList.remove('loading');
-            }
-        });
-    </script>
+    viewer.addEventListener("progress", (event) => {
+      const progress = Math.round(event.detail.totalProgress * 100);
+      progressFill.style.width = `${progress}%`;
 
+      if (progress >= 100) {
+        viewer.classList.remove("loading");
+      }
+    });
+
+    viewer.addEventListener("load", () => {
+      progressFill.style.width = "100%";
+      viewer.classList.remove("loading");
+    });
+  </script>
 </body>
 </html>
